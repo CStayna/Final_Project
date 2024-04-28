@@ -1,0 +1,218 @@
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="initial-scale=1,maximum-scale=1,user-scalable=no" />
+
+    <title>Vulnerable Populations Across America</title>
+
+    <link rel="stylesheet" href="https://js.arcgis.com/4.29/esri/themes/dark/main.css" />
+
+    <style>
+      html,
+      body,
+      #viewDiv {
+        padding: 0;
+        margin: 0;
+        height: 100%;
+        width: 100%;
+      }
+    </style>
+
+    <script src="https://js.arcgis.com/4.29/"></script>
+
+    <script>
+      require([
+        "esri/WebMap",
+        "esri/views/MapView",
+        "esri/layers/FeatureLayer",
+        "esri/renderers/DotDensityRenderer",
+        "esri/widgets/Legend",
+        "esri/widgets/Bookmarks",
+        "esri/widgets/Expand"
+      ], (WebMap, MapView, FeatureLayer, DotDensityRenderer, Legend, Bookmarks, Expand) => {
+        const map = new WebMap({
+          portalItem: {
+            id: "56b5bd522c52409c90d902285732e9f1",
+          }
+        });
+
+        const view = new MapView({
+          container: "viewDiv",
+          map: map,
+          center:[-75.1652, 39.9526],
+          zoom: 11,
+          highlightOptions: {
+            fillOpacity: 0,
+            color: [50, 50, 50]
+          },
+          popup: {
+            dockEnabled: true,
+            dockOptions: {
+              position: "top-right",
+              breakpoint: false
+            }
+          },
+          constraints: {
+            maxScale: 35000
+          }
+        });
+    
+     
+        view.when().then(() => {
+          const dotDensityRenderer = new DotDensityRenderer({
+            dotValue: 10,
+            outline: null,
+            referenceScale: 577790,  // 1:577,790 view scale
+            legendOptions: {
+              unit: "people"
+            },
+            attributes: [
+              {
+                field: "B16007_014E",
+                color: "#D20606",
+                label: "Population 65 Years and Over"
+              },
+              {
+                field: "B16007_002E",
+                color: "#FFD410",
+                label: "Population 5 to 17 Years"
+              },
+              {
+                field: "B16007_calc_numSpanE",
+                color: "#32FCD4",
+                label: "Population Age 5+ Who Speaks Spanish at Home"
+              },
+              {
+                field: "B16007_calc_numIEE",
+                color: "#3FB4FC",
+                label: "Population Age 5+ Who Speaks another Indo-European Language at Home"
+              },
+              {
+                field: "B16007_calc_numAPIE",
+                color: "#570879",
+                label: "Population Age 5+ Who Speaks an Asian and Pacific Islander Language at Home"
+              },
+              {
+                field: "B16007_calc_numOtherE",
+                color: "#764600",
+                label: "Population Age 5+ Who Speaks some Other Language at Home"
+              }
+            ]
+          });
+
+          // Add renderer to the layer and define a popup template
+          const url =
+            "https://services.arcgis.com/V6ZHFr6zdgNZuVG0/ArcGIS/rest/services/ACS_language_and_race_variables_2021/FeatureServer/layers";
+          const layer = new FeatureLayer({
+            url: url,
+            minScale: 20000000,
+            maxScale: 35000,
+            title: "Current Population Estimates (ACS)",
+            popupTemplate: {
+              title: "{County}, {State}",
+              content: [
+              {
+                  type: "media",
+                  mediaInfos: [
+                    {
+                      title: "Current Population Estimates (ACS)",
+                      type: "bar-chart",
+                      value: {
+                        fields: [
+                          "B16007_014E",
+                          "B16007_002E",
+                          "B16007_calc_numSpanE",
+                          "B16007_calc_numIEE",
+                          "B16007_calc_numAPIE",
+                          "B16007_calc_numOtherE"
+                        ],
+                        tooltipField: "<field name>"
+                      }
+                    }
+                  ]
+                },
+                {
+                  type: "fields",
+                }
+              ],
+              fieldInfos: [
+                {
+                  fieldName: "B16007_014E",
+                  label: "65+",
+                  format: {
+                    digitSeparator: true,
+                    places: 0,
+                  },
+                },
+                {
+                  fieldName: "B16007_002E",
+                  label: "5-17",
+                  format: {
+                    digitSeparator: true,
+                    places: 0,
+                  },
+                },
+                {
+                  fieldName: "B16007_calc_numSpanE",
+                  label: "Spanish",
+                  format: {
+                    digitSeparator: true,
+                    places: 0,
+                  },
+                },
+                {
+                  fieldName: "B16007_calc_numIEE",
+                  label: "Other Indo-European Language",
+                  format: {
+                    digitSeparator: true,
+                    places: 0,
+                  },
+                },
+                {
+                  fieldName: "B16007_calc_numAPIE",
+                  label: "Asian and Pacific Islander Language",
+                  format: {
+                    digitSeparator: true,
+                    places: 0,
+                  },
+                },
+                {
+                  fieldName: "B16007_calc_numOtherE",
+                  label: "Other Language",
+                  format: {
+                    digitSeparator: true,
+                    places: 0,
+                  }
+                }
+              ]
+            },
+            renderer: dotDensityRenderer
+          });
+
+          map.add(layer);
+
+          view.ui.add(
+            [
+              new Expand({
+                view: view,
+                content: new Legend({ view: view }),
+                group: "top-left",
+                expanded: true
+              }),
+              new Expand({
+                view: view,
+                content: new Bookmarks({ view: view }),
+                group: "top-left"
+              })
+            ],
+            "top-left"
+          );
+        });
+      });
+    </script>
+  </head>
+
+  <body>
+    <div id="viewDiv"></div>
+  </body>
+</html>
